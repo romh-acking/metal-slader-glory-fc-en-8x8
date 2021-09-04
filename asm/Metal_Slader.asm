@@ -2,12 +2,15 @@ arch nes.cpu
 
 define Bank31Restore			$9CE5
 define Bank31Bankswitch			$989F
-define PasswordText8x16Setup	$87BE
 define LastBankRestore			$F017
 define LastBankBankswitch		$F16C
-define BtleSumSpecControlCode1	$67
-define BtleSumSpecControlCode2	#$67
-define BattleSumTxtId			$180
+define EntrySelectionEmpty		#$59
+
+define PasswordNextTileId		#$1B
+define PasswordEndTileId		#$1E
+
+define CharEllipses1			#$0d
+define CharEllipses2			#$0C
 
 //==============================
 //PARENT SECTOR
@@ -184,18 +187,43 @@ JMP BlinkingTextPalettes
 //==============================
 banksize $4000
 bank 30
+
 //==============================
-//Choice number fix 2 A
+//Choice number: 4 options per screen
 //==============================
-org $26C8 // 0x7A6C8
-JSR ChoiceNumberFix2
-NOP
-NOP
+
+// This is unfinished.
+// The game's engine does in fact support pagination for sub options,
+// but it get visually messy.
+
+//org $26B7 // 0x7A6B7
+//cmp #$04
+
+//org $29D1 // 0x7A9D1
+//db $04
+
+//org $2542 // 0x7A542
+//cmp #$04
+
+//org $2949 // 0x7A849
+//cmp #$05
+
+// Change when to paginate
+//org $297A // 0x7A97A
+//and #$04
+
+// Change when pagination is enabled
+//org $2849 // 0x7A849
+//cmp #$05
+
+//org $296E // 0x7A96E
+//and #$04
+
 //==============================
 //Choice number fix 1 A
 //==============================
 org $26D0 // 0x7A6D0
-JSR ChoiceNumberFix1
+JSR ChoiceNumberFix
 //==============================
 //Password shadow fix A
 //==============================
@@ -214,19 +242,6 @@ NOP
 //==============================
 org $2E36 // 0x7AE36
 JMP ScrollingTextSpeed
-//==============================
-//Upper textbox 8x16 font A
-//==============================
-org $2E69 // 0x7AE69
-JSR UpperTextbox8x16
-NOP
-//==============================
-//Input code range: hyphen fix
-//crash fix
-//WARNING: THIS IS A CRASH FIX
-//==============================
-org $2F10 // 0x7AF10
-JSR HyphenCrashFix
 //==============================
 //No indent
 //(Top dialogue box)
@@ -305,36 +320,18 @@ JSR SkipVoiceReport
 //It prevents puncation from registering as a voice
 //when coming before ellipses.
 //(OVERRIDE #1)
-//Ellipsis
-org $3AEB // 0x7BAEB
-//db $03, $03
+org $3AE3 // 0x7BAE3
+db $81,$81
 
-//Long hyphen
-org $3AEF //0x7BAEF
-db $03, $03, $03, $03, $03, $03
-
+//Long hyphen Part 1
+//(Long hyphen part 2 is already silent)
+org $3AAD //0x7BAAD
+db $03
 
 //Silencing puncation messes up the mouth movments
 //of certain lines with one word with the mouth patches
 //we've done
-//Question mark
-org $3BC0 //0x7bbc0
-//db $03
-
-//Single bang
-org $3BC1 //0x7bbc1
-//db $03
-
-//Double bang
-org $3BC2 //0x7bbc2
-//db $03
-
-//no silencing sweat emojis either, unlike
-//the original JP version. Changed last in line 1503
-//to not be fully composed of ellipses
-//Sweat
-org $3BBA //0x7BBBA
-//db $03
+// Don't silence sweat emojis, just like the original JP version.
 
 //==============================
 //Scrolling text speed C (when linebreaks are used)
@@ -397,29 +394,94 @@ nop
 //==============================
 banksize $4000 //0x7C000
 bank 31
+
+//==============================
+// Numbering fix
+// In-Dialogue options
+//==============================
+
+org $0F95 //0x7CF95
+
+db $FE,$B1
+db $FE,$B2
+db $FE,$FE
+db $10,$FE
+db $10,$FE
+db $00
+
+db $FE,$B1
+db $FE,$FE
+db $FE,$B2
+db $FE,$FE
+db $10,$FE
+db $FE,$FE
+db $10,$FE
+db $00
+
+db $FE,$B1
+db $FE,$B2
+db $FE,$FE
+db $FE,$FE
+db $10,$FE
+db $10,$FE
+db $FE,$FE
+db $00
+
+db $FE,$B1
+db $FE,$FE
+db $FE,$B2
+db $FE,$FE
+db $FE,$FE
+db $10,$FE
+db $FE,$FE
+db $10,$FE
+db $FE,$FE
+db $00
+
+db $FE,$B1
+db $FE,$FE
+db $FE,$FE
+db $FE,$B2
+db $FE,$FE
+db $10,$FE
+db $FE,$FE
+db $FE,$FE
+db $10,$FE
+db $00,$FE
+db $B1,$FE
+db $B2,$FE
+db $FE,$FE
+db $FE,$FE
+db $FE,$10
+db $FE,$10
+db $FE,$FE
+db $FE,$FE
+db $FE
+db $00
+
 //==============================
 //Password selection codes A
 //==============================
 org $07CB //0x7C7CB
 JMP SelectionCodesSetup
 //==============================
-//Password screen text 8x16
-//==============================
-PasswordText8x16Setup:
-JSR {Bank31Bankswitch}
-JSR PasswordText8x16
-RTS
-NOP
-NOP
-NOP
-NOP
-NOP
-NOP
+// Password selection (Pressing A)
+//=============================
+// Next option
 org $085D // 0x7C85D
-CMP #$1A      
-db $F0, $2C //BEQ +2C
-CMP #$1F
+CMP {PasswordNextTileId}
+
+// End option
+org $0861 // 0x7C861
+CMP {PasswordEndTileId}
+
 //==============================
+// Cursor tileid
+//=============================
+org $74B //0x7C74B
+lda {EntrySelectionEmpty}
+
+//==============================						
 //Password orange text
 //(Childless)
 //==============================
@@ -442,67 +504,53 @@ JSR {Bank31Bankswitch}
 JSR InputCodeRangeFix2Setup
 NOP
 //==============================
-//Input code range fix
+//Input code range
+//Adjust letter options to support new encoding
 //==============================
 org $0CCE // 0x7CCCE
-db $CA, $CB, $CC, $CD, $CE, $CF
-db $D0, $D1, $D2, $D3, $D4, $D5
-db $D6, $D7, $D8, $D9, $DA, $DB
-db $DC, $DD, $DE, $DF, $E0, $E1
-db $E2, $E3
-//==============================
-//Immediate choice number fix
-//==============================
-//Night
-org $0F95 // 0x7CF95
-db $21, $31, $22, $32
-//Night 2
-org $0FA0 // 0x7CFA0
-db $21, $31
-org $0FA4
-db $22, $32
-//Day
-org $0FAF // 0x7CFAF
-db $21, $31, $22, $32, $FE
-org $0FBE // 0x7CFBE
-db $21, $31
-org $0FC2 // 0x7CFC2
-db $22, $32
-//SPECIAL INSTANCE		  
-org $0FE4 // 0x7CFE4
-db $21, $31, $22, $32
+db $20, $21, $22, $23, $24, $25
+db $26, $27, $28, $29, $2A, $2B
+db $2C, $2D, $2E, $2F, $30, $31
+db $32, $33, $34, $35, $36, $37
+db $38, $39
 
 //==============================
 //No auto-linebreak (General)
 //(Childless)
 //==============================
-org $1272 // 0x7D272
-NOP
-NOP
-NOP
+org $1272; fill $03, $ea // 0x7D272
+
 //==============================
 //No auto-linebreak (War Story)
 //(Bottom Text) (Childless)
-//Inserted by FCandChill
-//Some patches in here are mine
-//too.
 //==============================
-org $1294 // 0x7D294
-NOP
-NOP
-NOP
+org $1294; fill $03, $ea // 0x7D294
+
 //==============================
-//8x16 font
+// Accent mark
 //==============================
-org $1301 // 0x7D301
-JMP Setup8x16
-NOP
-//==============================
-//8x16 font scroll fix
-//==============================
-org $1481 // 0x7D481
-JSR FontScrollFixSetup8x16
-RTS
+org $1304; base $92F4; fill $2E, $ea
+org $1304; base $92F4 // 0x7D304
+
+// Due to space constraints in this bank and
+// the extended bank, everything on line #$E0
+// is registered as an accent mark.
+pha
+and #$F0
+cmp #$E0
+bne NotAccentCharacter
+pla
+sta $27
+jsr $9348                
+lda $05e7,y              
+ora $935f,x              
+sta $05e7,y              
+ldx $10                  
+jmp $92e7                
+
+NotAccentCharacter:
+pla
+
 //==============================
 //Bank 31 bankswitch
 //==============================
@@ -556,13 +604,6 @@ NOP
 NOP
 NOP
 //==============================
-//Password screen text 8x16
-//==============================
-org $1A0C // 0x7DA0C
-JSR {PasswordText8x16Setup}
-NOP
-NOP
-//==============================
 //No indent fullscreen
 //(Childless)
 //==============================
@@ -581,18 +622,27 @@ NOP
 org $2809 // 0x7E809
 //db $12
 //==============================
-//8X16 choice text fix A
+//Password screen (and V-MH selection) empty slots
 //==============================
-org $3168 // 0x7F168
-JSR ChoiceText8x16Setup
-NOP
-NOP
+org $B89 // 0x7CB89
+//lda {EntrySelectionEmpty}
+
+org $192B // 0x0007D92B
+lda {EntrySelectionEmpty}
+
 //==============================
 // Ch7: Correct quote to AZUSA password
 //==============================
 org $BE6 //0x7CBE6
-ldy #$AB
-lda #$BB
+ldy #$FE
+lda #$AC
+
+//==============================
+//Password screen: Empty entry handling
+//==============================
+
+org $BDB //0x7CBDB
+CMP {EntrySelectionEmpty}
 
 //============================================================
 //CHILD SECTOR
@@ -847,66 +897,29 @@ STA $2E
 JMP $99B1
 
 //==============================
-//Choice number fix 1
+// Choice numbering fix
+// (Menu Numbering)
 //==============================
-ChoiceNumberFix1:
+ChoiceNumberFix:
 CMP #$10
 BEQ ExitNumberFix
 CMP #$FE
 BEQ ExitNumberFix
 CLC
-ADC #$10
+ADC #$90
 ExitNumberFix:
 STA $04A9,y
 RTS
-//==============================
-//Choice number fix 2
-//==============================
-ChoiceNumberFix2:
-LDA $8A4D,x
-CMP #$10
-BNE ExitNumberFix2
-LDA #$FE
-ExitNumberFix2:
-STA $04A8,y
-RTS
-//==============================
-//Upper textbox 8x16
-//==============================
-UpperTextbox8x16:
-LDA $0481,y
-CMP #$C0
-BCS ReallyEmptyTile
-CMP #$20
-BCC ReallyEmptyTile
-SEC
-SBC #$10
-JMP Exit8x16UpperTextbox
-ReallyEmptyTile:
-LDA #$FE
-Exit8x16UpperTextbox:
-STA $58
-STA $049E
-RTS
-//==============================
-//Hyphen crash fix B
-//==============================
-HyphenCrashFix:
-LDA $0483,y
-CMP #$0C
-BNE SkipHyphenCrashFix
-LDA #$0C
-SkipHyphenCrashFix:
-RTS
+
 //==============================
 //Slow Mouth B
 //==============================
 SlowMouth:
 lda $04A9
 
-cmp #$1b				//;[...]	(OVERRIDE #1)
+cmp {CharEllipses1}		//;[...]	(OVERRIDE #1)
 beq OpenMouth_Override
-cmp #$1c				//;[..]		(OVERRIDE #1)
+cmp {CharEllipses2}		//;[..]		(OVERRIDE #1)
 beq OpenMouth_Override_Reset
 
 LDA $02
@@ -942,15 +955,7 @@ Bank30Bankswitch:
 LDA #$F0
 STA $5115
 RTS
-//==============================
-//Choice Text 8x16 setup
-//(fixed position due to
-//last bank origin)
-//==============================
-//0x7C009
-JSR Bank30Bankswitch
-JSR ChoiceText8x16
-RTS
+
 //==============================
 //Password text speed setup
 //==============================
@@ -960,14 +965,6 @@ STA $2E
 JSR {Bank31Bankswitch}
 JSR TextSpeedPassword
 RTS
-//==============================
-//8x16 font setup
-//==============================
-Setup8x16:
-JSR {Bank31Bankswitch}
-JSR Font8x16
-LDA $0469,y
-JMP $9322
 //==============================
 //8x16 scroll fix setup
 //==============================
@@ -1001,16 +998,6 @@ RTS
 InputCodeRangeFix2Setup:
 JSR InputCodeRangeFix2
 LDA $FF
-RTS
-//==============================
-//Choice Text 8x16 setup
-//(fixed position due to
-//last bank parent)
-//==============================
-org $2009 ; base $9FF9 //0x7E009
-ChoiceText8x16Setup:
-JSR {Bank31Bankswitch}
-JSR ChoiceText8x16
 RTS
 //==============================
 //BANK 38 (Extension of bank 31)
@@ -1098,52 +1085,6 @@ STA $2E
 STA $FE
 JMP {LastBankRestore}
 //==============================
-//Password text 8x16 B
-//==============================
-PasswordText8x16:
-LDA $04A9
-CMP #$C0
-BCS LoadVeryEmptyTile
-CMP #$20
-BCC LoadVeryEmptyTile
-SEC
-SBC #$10
-JMP ExitPasswordText8x16
-LoadVeryEmptyTile:
-LDA #$FE
-ExitPasswordText8x16:
-STA $04A8
-JMP {LastBankRestore}
-//==============================
-//8x16 Choice text B
-//==============================
-ChoiceText8x16:
-LDA $0469,y
-CMP #$C0
-BCS SkipSpace
-CMP #$20
-BCC SkipSpace
-///////////////////////////////////
-//"Let's debug!" exception handling
-//Check star character
-CMP #$AE
-BNE SkipException
-//Check CHR bank
-LDA $0450
-CMP #$80
-BNE SkipException
-JMP SkipSpace
-SkipException:
-///////////////////////////////////
-SEC
-SBC #$10
-JMP Exit8x16ChoiceText
-SkipSpace:
-LDA #$FE
-Exit8x16ChoiceText:
-STA $04A8,x
-JMP {LastBankRestore}
-//==============================
 //Unfortunately, 02 is the max
 //speed before utter silence
 //Text speed password B
@@ -1162,118 +1103,10 @@ InputCodeRangeFix2:
 LDX $16
 LDY #$00
 LDA $0558,x
-CMP #$0C
+CMP {EntrySelectionEmpty}
 BNE SkipAddOn
 CLC
 ADC #$A0
 SkipAddOn:
 STA $FF
-JMP {LastBankRestore}
-
-//==============================
-//Ch7: Battle Summary B
-//==============================
-
-
-//;0x5CAA = Controls the enemies that come for you
-
-//Table stored in RAM at $A0C6
-t_Level_2_1:
-db $02,$02,$08,$02,$00,$01,$05,$00,$01,$02,$FF,$FF,$FF,$FF,$FF,$FF
-t_Level_2_2:
-db $02,$02,$09,$00,$00,$01,$08,$02,$00,$04,$FF,$FF,$FF,$FF,$FF,$FF
-t_Level_2_3:
-db $FF,$02,$09,$00,$FF,$01,$05,$00,$01,$00,$FF,$FF,$FF,$FF,$FF,$FF
-t_Level_3_1:
-db $02,$02,$09,$00,$FF,$01,$08,$02,$00,$01,$FF,$FF,$FF,$FF,$FF,$FF
-t_Level_3_2:
-db $03,$02,$04,$02,$01,$01,$09,$00,$00,$03,$FF,$FF,$FF,$FF,$FF,$FF
-t_Level_3_3:
-db $02,$02,$08,$02,$00,$01,$09,$00,$00,$05,$FF,$FF,$FF,$FF,$FF,$FF
-t_Level_3_4:
-db $FF,$02,$08,$02,$FF,$01,$05,$00,$01,$00,$FF,$FF,$FF,$FF,$FF,$FF
-
-//;    Level 2:
-//;        1st enemy: 1 E.P.F., 1 POD, and missles!
-//;        2nd enemy: 2 PODs and missiles!
-//;        3rd enemy: 1 E.P.F.
-//;    Level 3:
-//;        1st enemy: 1 POD and missles!
-//;        2nd enemy: 1 E.P.F., 1 POD, and an E.Ball!
-//;        3rd enemy: 2 PODs and missiles!
-//;        4th enemy: 1 E.P.F.
-
-BattleSummary:
-tya
-cpy {BtleSumSpecControlCode2}
-bne ProcessControlCode
-lda #$C6
-sta $18
-lda #$A0
-sta $19
-
-lda #$00
-sta {BattleSumTxtId}
-
-ldy #$00
-ldx #$00
-
-compareLoop:
-LDA ($18),y
-cmp $5CAC,x	//stores the current enemy you see onscreen
-bne failed
-
-iny
-inx
-
-cpx #$0a
-bne compareLoop
-
-match:
-jmp $A16C
-failed:
-lda {BattleSumTxtId}
-asl
-asl
-asl
-asl
-tay
-
-ldx #$00
-inc {BattleSumTxtId}
-clc
-bcc compareLoop
-
-done:
-ldy #$00
-ldx #$00
-lda #$4e
-
-ProcessControlCode:
-LSR
-LSR
-LSR
-LSR
-LSR
-AND #$06
-TAX
-TYA
-ASL
-ASL
-TAY
-
-LDA $8004,x
-STA $18
-LDA $8005,x
-STA $19
-LDA ($18),y
-STA $13
-AND #$C0
-LSR
-LSR
-LSR
-LSR
-LSR
-LSR
-TAX
 JMP {LastBankRestore}

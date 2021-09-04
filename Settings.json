@@ -281,6 +281,7 @@
                     "DictionaryTemplateFile": ".\\tables\\Dictionary",
                     "MirrorBlankDictionaryEntries": false,
                     "SquishyTextFile": ".\\tables\\SquishyText",
+					"SquishyTextFileUseregex": true,
                     "PixelsPerLine": 0,
                     "InsertLineBreaks": false,
                     "AutoLineBreak": "MetalSladerGlory"
@@ -312,9 +313,10 @@
                     "DictionaryTemplateFile": ".\\tables\\Dictionary",
                     "MirrorBlankDictionaryEntries": false,
                     "SquishyTextFile": ".\\tables\\SquishyText",
+					"SquishyTextFileUseregex": true,
                     "PixelsPerLine": 224,
                     "InsertLineBreaks": true,
-                    "AutoLineBreak": "MetalSladerGlory"
+                    "AutoLineBreak": "MetalSladerGlory",					
                 }
             }
         }
