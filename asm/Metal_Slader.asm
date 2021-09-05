@@ -527,10 +527,10 @@ org $1272; fill $03, $ea // 0x7D272
 org $1294; fill $03, $ea // 0x7D294
 
 //==============================
-// Accent mark
+// Accent mark #1
 //==============================
 org $1304; base $92F4; fill $2E, $ea
-org $1304; base $92F4 // 0x7D304
+org $1304; base $92F4 // 0x7D2F4
 
 // Due to space constraints in this bank and
 // the extended bank, everything on line #$E0
@@ -540,16 +540,81 @@ and #$F0
 cmp #$E0
 bne NotAccentCharacter
 pla
-sta $27
-jsr $9348                
-lda $05e7,y              
-ora $935f,x              
-sta $05e7,y              
-ldx $10                  
-jmp $92e7                
+pha
 
+and #$0F
+asl
+asl
+asl
+asl
+sta $05
+pla
+
+sta $27
+jsr $9348
+tya
+adc $05
+tay
+lda $05d7,y
+ora $935f,x
+sta $05d7,y
+
+ldx $10
+jmp $92e7
 NotAccentCharacter:
 pla
+
+//==============================
+// Accent mark #3 (Password screen)
+//==============================
+org $19FA; base $99EA; fill $09, $ea // 0x0007D9FA
+org $19FA; base $99EA
+lda $0469,y
+cmp #$e0
+db $f0,$04 //beq $99f5
+cmp #$e1
+
+
+//==============================
+// Accent mark #2
+//==============================
+org $13B1; base $93A1; fill $20, $ea // 0x7D3B1
+org $13B1; base $93A1
+jsr $9471
+lda $13
+asl
+asl
+pha
+//pha
+tax
+
+lda #$e0 
+sta $16
+jsr $93c1
+
+pla
+clc
+adc #$10 
+tax
+lda #$e1
+sta $16 
+jsr $93c1
+jmp AccentMark2
+
+
+org $1FF0; base $9FE0 // 0x7dff0
+AccentMark2:
+//pla
+//clc
+//adc #$10
+//tax
+//lda #$e2
+//sta $16
+//jsr $93c1
+jsr $93fd
+rts
+
+
 
 //==============================
 //Bank 31 bankswitch
@@ -966,17 +1031,6 @@ JSR {Bank31Bankswitch}
 JSR TextSpeedPassword
 RTS
 //==============================
-//8x16 scroll fix setup
-//==============================
-FontScrollFixSetup8x16:
-LDA $12
-AND #$01
-BNE SkipScroll
-JSR {Bank31Bankswitch}
-JSR FontScrollFix8x16
-SkipScroll:
-RTS
-//==============================
 //Password selection codes setup
 //==============================
 SelectionCodesSetup:
@@ -1028,31 +1082,6 @@ STA $27
 LDA #$00
 STA $FF
 Exit:
-JMP {LastBankRestore}
-//==============================
-//8x16 scroll fix
-//==============================
-FontScrollFix8x16:
-LDY $FF
-LDX #$00
-loop:
-LDA $0557,y
-CMP #$C0
-BCS LoadEmptyTile
-CMP #$20
-BCC LoadEmptyTile
-SEC
-SBC #$10
-JMP WriteVramBuffer
-LoadEmptyTile:
-LDA #$FE
-WriteVramBuffer:
-STA $04A8,x
-INX
-INY
-CPX #$1C
-BNE loop
-STY $FF
 JMP {LastBankRestore}
 //==============================
 //Password selection codes B

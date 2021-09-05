@@ -7,7 +7,7 @@ This repository contains source code for patches and tools to compile an English
 
 This is a fork of the original [metal-slader-glory-fc-en](https://github.com/romh-acking/metal-slader-glory-fc-en) repository. This repo downgrades from an 8x16 font to an 8x8 font to allow for more foreign characters. This makes it easier to translate to other languages.
 
-Spanish characters are supported. For the "robotic" text, there aren't specific characters with accents, so if you want an á, wite out "`ａ" instead.
+Spanish characters are supported. For the "robotic" text, there aren't specific characters with accents, so if you want an á, wite out "`ａ" instead. However, only two accent marks characters are supported, due to limitations in the game's engine and RAM.
 
 ## Licensing
 
