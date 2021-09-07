@@ -12,6 +12,9 @@ define PasswordEndTileId		#$1E
 define CharEllipses1			#$0d
 define CharEllipses2			#$0C
 
+define Accent1					#$E0
+define Accent2					#$E1
+
 //==============================
 //PARENT SECTOR
 //==============================
@@ -187,6 +190,18 @@ JMP BlinkingTextPalettes
 //==============================
 banksize $4000
 bank 30
+
+//==============================
+// Accent #5
+//==============================
+
+org $2E55 //; 0x7DE55
+cmp {Accent1}
+
+org $2E59 //; 0x7DE59
+cmp {Accent2}
+
+//==============================
 
 //==============================
 //Choice number: 4 options per screen
@@ -565,17 +580,6 @@ NotAccentCharacter:
 pla
 
 //==============================
-// Accent mark #3 (Password screen)
-//==============================
-org $19FA; base $99EA; fill $09, $ea // 0x0007D9FA
-org $19FA; base $99EA
-lda $0469,y
-cmp #$e0
-db $f0,$04 //beq $99f5
-cmp #$e1
-
-
-//==============================
 // Accent mark #2
 //==============================
 org $13B1; base $93A1; fill $20, $ea // 0x7D3B1
@@ -588,7 +592,7 @@ pha
 //pha
 tax
 
-lda #$e0 
+lda {Accent1}
 sta $16
 jsr $93c1
 
@@ -596,7 +600,7 @@ pla
 clc
 adc #$10 
 tax
-lda #$e1
+lda {Accent2}
 sta $16 
 jsr $93c1
 jmp AccentMark2
@@ -614,6 +618,34 @@ AccentMark2:
 jsr $93fd
 rts
 
+//==============================
+// Accent mark #3 (Password screen)
+//==============================
+org $19FA; base $99EA; fill $09, $ea // 0x0007D9FA
+org $19FA; base $99EA
+lda $0469,y
+cmp {Accent1}
+db $f0,$04 //beq $99f5
+cmp {Accent2}
+
+//==============================
+// Accent mark #4 (Menu options)
+//==============================
+org $3152; base $F142; fill $0a, $ea // 0x0007F152
+org $3152; base $F142
+lda $0469,y
+iny
+cmp {Accent1}
+db $F0,$F1     //BEQ $F13B
+cmp {Accent2}
+
+org $3176; base $F166; fill $0a, $ea // 0x0007F176
+org $3176; base $F166
+lda $0469,y
+iny
+cmp {Accent1}
+db $F0,$04     // BEQ $F172
+cmp {Accent2}
 
 
 //==============================
