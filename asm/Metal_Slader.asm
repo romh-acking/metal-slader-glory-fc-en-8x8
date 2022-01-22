@@ -283,12 +283,12 @@ JMP TextSpeedReport
 //Emergency countdown fix
 //==============================
 org $30EC // 0x7B0EC
-db $9F
+db $3F
 //==============================
 //Emergency countdown period fix
 //==============================
 org $312E // 0x7B12E
-db $14
+db $56
 //==============================
 //Portrait shadows fix A
 //==============================
